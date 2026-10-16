@@ -12,3 +12,6 @@ class DataSource(ABC):
 
     @abstractmethod
     async def match_player_stats(self, source_match_id: str) -> list[dict[str, Any]]: ...
+
+    @abstractmethod
+    async def match_games(self, source_match_id: str) -> list[dict[str, Any]]: ...

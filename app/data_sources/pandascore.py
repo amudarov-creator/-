@@ -22,4 +22,9 @@ class PandaScoreSource(DataSource):
         response.raise_for_status()
         return response.json()
 
+    async def match_games(self, source_match_id: str) -> list[dict[str, Any]]:
+        response = await self.client.get(f"/csgo/matches/{source_match_id}/games")
+        response.raise_for_status()
+        return response.json()
+
     async def close(self) -> None: await self.client.aclose()

@@ -9,6 +9,7 @@ from app.analytics.service import find_players, player_stats, report
 from app.bot.keyboards import main_menu
 from app.core.config import get_settings
 from app.database.session import SessionLocal
+from app.tasks.sync import run as run_sync
 
 router = Router()
 
@@ -76,3 +77,15 @@ def _is_admin(message: Message) -> bool:
 async def health(message: Message) -> None:
     if not _is_admin(message): return
     await message.answer("ok")
+
+
+@router.message(Command("refresh"))
+async def refresh(message: Message) -> None:
+    if not _is_admin(message):
+        return
+    await message.answer("Запускаю ограниченное обновление из разрешённого источника.")
+    try:
+        count = await run_sync()
+        await message.answer(f"Обновление завершено. Обработано записей: {count}.")
+    except Exception:
+        await message.answer("Обновление не завершилось. Подробности сохранены в журнале ingestion_runs.")

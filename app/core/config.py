@@ -10,7 +10,10 @@ class Settings(BaseSettings):
     redis_url: str = "redis://redis:6379/0"
     pandascore_token: str = ""
     pandascore_base_url: str = "https://api.pandascore.co"
+    data_source: str = "bo3"
+    bo3_base_url: str = "https://api.bo3.gg/api/v1"
     min_maps_for_ranking: int = 20
+    pandascore_sync_max_matches: int = 100
     log_level: str = "INFO"
 
     @property
