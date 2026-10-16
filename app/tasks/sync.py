@@ -9,6 +9,7 @@ from app.data_sources.normalizer import (game_scores, map_name, parse_datetime, 
                                          stat_game_id, stat_player, stat_rate, teams_from_match)
 from app.data_sources.pandascore import PandaScoreSource
 from app.data_sources.bo3 import Bo3Source
+from app.data_sources.cito import CitoSource
 from app.database.models import IngestionRun, PlayerMapStat
 from app.database.repositories import (upsert_map_result, upsert_match, upsert_player,
                                        upsert_team, upsert_tournament)
@@ -103,7 +104,9 @@ async def import_match(session, source, payload: dict) -> None:
 
 async def run() -> int:
     settings = get_settings()
-    if settings.data_source == "bo3":
+    if settings.data_source == "cito":
+        source = CitoSource(settings.cito_api_key, settings.cito_base_url)
+    elif settings.data_source == "bo3":
         source = Bo3Source(settings.bo3_base_url)
     elif settings.data_source == "pandascore":
         if not settings.pandascore_token:
@@ -111,13 +114,13 @@ async def run() -> int:
             return 0
         source = PandaScoreSource(settings.pandascore_token, settings.pandascore_base_url)
     else:
-        raise ValueError("DATA_SOURCE must be 'bo3' or 'pandascore'")
+        raise ValueError("DATA_SOURCE must be 'cito', 'bo3' or 'pandascore'")
     async with SessionLocal() as session:
         record = IngestionRun(source=source.name, status="running")
         session.add(record); await session.commit()
         try:
             async for match in source.past_matches():
-                if record.records_seen >= settings.pandascore_sync_max_matches:
+                if record.records_seen >= settings.sync_max_matches:
                     break
                 record.records_seen += 1
                 if match.get("status") != "finished" or not match.get("id"):
